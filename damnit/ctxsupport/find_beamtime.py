@@ -21,7 +21,12 @@ def find_beamtime(beamtimeId: Union[int, str]):
         print(f"Proposal {beamtimeId} does not exist")
         return None
     elif len(folders) == 1:
-        return folders[0].as_posix()
+        _folder = list(folders[0].iterdir())
+        if len(_folder) == 1:
+            return _folder[0].as_posix()
+        else:
+            raise ValueError(f"unsupported structure for proposal {proposal} folder: {len(_folder)} dirs instead of 1 found")
+         
     else:
         raise ValueError(f"multiple entries encountered for proposal {proposal}")
 

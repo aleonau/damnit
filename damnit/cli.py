@@ -278,7 +278,7 @@ def main(argv=None):
                 # proposal_name = f"p{int(args.proposal_or_dir):06d}"
                 # context_dir = Path(find_proposal(proposal_name)) / "usr/Shared/amore"
                 proposal_name = args.proposal_or_dir
-                context_dir = Path(find_beamtime(proposal_name)) / "processed/_damnit"
+                context_dir = Path(find_beamtime(proposal_name)) / "shared/_damnit"
             else:
                 sys.exit(f"{args.proposal_or_dir} is not a proposal number or DAMNIT database directory")
         else:
@@ -311,7 +311,7 @@ def main(argv=None):
                                # Convert `static_mode` to a bool
                                dict(static_mode=lambda x: bool(int(x))))
         elif args.listener_subcmd == "add":
-            official_dir = Path(find_beamtime(args.proposal)) / "_processed/_damnit"
+            official_dir = Path(find_beamtime(args.proposal)) / "shared/_damnit"
 
             if args.db_dir is None:
                 db_dir = official_dir

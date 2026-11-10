@@ -204,7 +204,7 @@ class EventProcessor:
         # If it's the first time we've seen this proposal and we're not in
         # static mode, add it to the database.
         try:
-            official_path = Path(find_beamtime(proposal)) / "processed/_damnit"
+            official_path = Path(find_beamtime(proposal)) / "shared/_damnit"
         except FileNotFoundError:
             log.warning(f"Could not find proposal directory for p{proposal}")
             official_path = None

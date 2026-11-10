@@ -93,7 +93,7 @@ class NewContextFileDialog(QDialog):
                 QMessageBox.critical(self, "Proposal not found",
                                      f"Could not find proposal {propnum}")
                 return self.run_get_result()
-            path = Path(prop_dir) / 'processed/_damnit/context.py'
+            path = Path(prop_dir) / 'shared/_damnit/context.py'
             if not path.is_file():
                 QMessageBox.critical(self, "No context file",
                                      f"Proposal {propnum} didn't contain a context file")
