@@ -2,22 +2,23 @@ from typing import Union
 from pathlib import Path
 from argparse import ArgumentParser
 
-GLOBAL_PATH_P10 = Path('/asap3/petra3/gpfs/p10/')
+GLOBAL_PATH_P10 = Path('/data/visitors/softimax/')
 
 def find_beamtime(beamtimeId: Union[int, str]):
-    """Retrieve path to the P10 beamtime folder."""
+    """Retrieve path to the MAX4/Softimax beamtime folder."""
     
     if isinstance(beamtimeId, int):
         beamtimeId = str(beamtimeId)
         
-    glob_pattern = '*/data/' + beamtimeId
+    # glob_pattern = '*/data/' + beamtimeId
+    glob_pattern = '*' + beamtimeId
 
     folders = list()
     for _folder in GLOBAL_PATH_P10.glob(glob_pattern):
         folders.append(_folder)
 
     if len(folders) == 0:
-        print(f"Proposal {proposal} does not exist")
+        print(f"Proposal {beamtimeId} does not exist")
         return None
     elif len(folders) == 1:
         return folders[0].as_posix()

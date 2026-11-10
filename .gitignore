@@ -158,3 +158,6 @@ cython_debug/
 *.DS_Store
 # pixi environments
 .pixi
+# pixi environments
+.pixi/*
+!.pixi/config.toml

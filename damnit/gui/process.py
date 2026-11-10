@@ -150,7 +150,7 @@ class ProcessingDialog(QtWidgets.QDialog):
 
     def validate_runs(self):
         runs = parse_run_ranges(self.edit_runs.text())
-        self.selected_runs = find_runs(runs, self.edit_prop.text())  # Desy hack: in user input we trust. No check as there's no real data.
+        self.selected_runs = runs #find_runs(runs, self.edit_prop.text())  # Desy hack: in user input we trust. No check as there's no real data.
         if runs:
             msg = f"{len(self.selected_runs)} runs selected"
             if nmissing := len(runs) - len(self.selected_runs):

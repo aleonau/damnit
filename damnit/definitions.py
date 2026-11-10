@@ -1,6 +1,6 @@
 import os
  
-UPDATE_BROKERS = ['it-kafka-broker05', 'it-kafka-broker06', 'it-kafka-broker07']
+UPDATE_BROKERS = ['offline-fe1:9092'] #['localhost:9092'] #'it-kafka-broker05', 'it-kafka-broker06', 'it-kafka-broker07']
 
 UPDATE_TOPIC = "test.damnit.db-{}"  # Fill in ID stored in database
 

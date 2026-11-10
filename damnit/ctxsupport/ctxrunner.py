@@ -219,7 +219,7 @@ class ContextFile:
 
     def execute(self, run_data, run_number, proposal, input_vars) -> 'Results':
 
-        dep_results = {'start_time': get_start_time(run_data)}
+        dep_results = {'start_time': 12345678} #get_start_time(run_data)}
         res = {'start_time': Cell(dep_results['start_time'])}
         errors = {}
         metadata = None
@@ -783,7 +783,7 @@ def main(argv=None):
             # variables have access to raw data too.
             actual_run_data = RunData.ALL if run_data == RunData.PROC else run_data
 
-            run_dc = open_scan(args.proposal, args.run)
+            run_dc = 123 #open_scan(args.proposal, args.run)
 
         res = ctx.execute(run_dc, args.run, args.proposal, input_vars={})
 
