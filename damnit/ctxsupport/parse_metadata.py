@@ -174,7 +174,15 @@ def open_scan(beamtime, scan_no, all_messages=False):
     scan_meta['beamtime'] = beamtime
     scan_meta['scan_name'] = scan_name
     scan_meta['scan_no'] = scan_no
-    scan_meta['timestamp'] = get_start_time(scan_name)
+
+    try:
+        timestamp = get_start_time(scan_name)
+    except Exception as e:
+        print(f"Warning! Exception occurred during reading enumerated scan list:")
+        print(e)
+        timestamp = 0
+    
+    scan_meta['timestamp'] = 0
 
     return scan_meta
         
