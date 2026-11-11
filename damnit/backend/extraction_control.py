@@ -309,12 +309,19 @@ class ExtractionSubmitter:
             return self._slurm_shared_opts()
 
     def _slurm_shared_opts(self):
-        return [
-            "--clusters", "all", #"solaris",
+        opts = []
+        if reservation := self.db.metameta.get('slurm_reservation', ''):
+            opts.extend(['--reservation', reservation])
+        else:
+            partition = self.db.metameta.get('slurm_partition', '') or default_slurm_partition()
+            opts.extend(['--partition', partition])
+
+        opts.extend([
             # Default 4 CPU cores & 25 GB memory, can be overridden
             '--cpus-per-task', str(self.db.metameta.get('noncluster_cpus', '4')),
             '--mem', self.db.metameta.get('noncluster_mem', '25G'),
-        ]
+        ])
+        return opts
 
     def _slurm_cluster_opts(self):
         # Maxwell (dedicated node)
