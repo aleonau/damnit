@@ -213,8 +213,15 @@ class RunExtractor(Extractor):
         # For some reason, SLURM_CLUSTER_NAME is '(null)'. This is a workaround:
         if not os.environ.get('SLURM_JOB_ID', ''):
             return None
+        cluster = os.environ.get('SLURM_CLUSTER_NAME', '')
+        if cluster and cluster != '(null)':
+            return cluster
         partition = os.environ.get('SLURM_JOB_PARTITION', '')
-        return 'solaris' if (partition == 'solcpu') else 'maxwell'
+        if partition == 'solcpu':
+            return 'solaris'
+        elif partition in ('exfel', 'upex'):
+            return 'maxwell'
+        return None
 
     @staticmethod
     def _slurm_job_id():

@@ -184,8 +184,8 @@ class ExtractionSubmitter:
         )
         job_id, _, cluster = res.stdout.partition(';')
         job_id = job_id.strip()
-        cluster = cluster.strip() or 'maxwell'
-        log.info("Launched Slurm (%s) job %s to run context file", cluster, job_id)
+        cluster = cluster.strip() or None
+        log.info("Launched Slurm (%s) job %s to run context file", cluster or "default", job_id)
         return job_id, cluster
 
     def sbatch_cmd(self, req: ExtractionRequest):
@@ -249,9 +249,9 @@ class ExtractionSubmitter:
             )
             job_id, _, cluster = res.stdout.partition(';')
             job_id = job_id.strip()
-            cluster = cluster.strip() or 'maxwell'
+            cluster = cluster.strip() or None
             log.info("Launched Slurm (%s) job array %s (%d runs) to run context file",
-                     cluster, job_id, len(req_group))
+                     cluster or "default", job_id, len(req_group))
             out.extend([(f"{job_id}_{i}", cluster) for i in range(len(req_group))])
 
         return out
@@ -324,11 +324,11 @@ class ExtractionSubmitter:
         return opts
 
     def _slurm_cluster_opts(self):
-        # Maxwell (dedicated node)
         opts = [
-            "--clusters", "maxwell",
             "--time", self.db.metameta.get("slurm_time", "02:00:00")
         ]
+        if cluster := self.db.metameta.get('slurm_cluster', ''):
+            opts.extend(["--clusters", cluster])
 
         if reservation := self.db.metameta.get('slurm_reservation', ''):
             opts.extend(['--reservation', reservation])
@@ -436,7 +436,8 @@ class ExtractionJobTracker:
         """Check for any Slurm jobs that exited without a 'finished' message"""
         jobs_by_cluster = {}
         for info in self.jobs.values():
-            if cluster := info['slurm_cluster']:
+            if info.get('slurm_job_id'):
+                cluster = info.get('slurm_cluster') or None
                 jobs_by_cluster.setdefault(cluster, []).append(info)
 
         for cluster, infos in jobs_by_cluster.items():
@@ -446,8 +447,10 @@ class ExtractionJobTracker:
             if len(jids) == 1:
                 jids.append("1")
 
-            cmd = ["squeue", "--clusters", cluster, "--jobs=" + ",".join(jids),
-                   "--format=%i %T", "--noheader"]
+            cmd = ["squeue"]
+            if cluster:
+                cmd.extend(["--clusters", cluster])
+            cmd.extend(["--jobs=" + ",".join(jids), "--format=%i %T", "--noheader"])
             self.squeue_check_jobs(cmd, infos)
 
     # Running the squeue subprocess is separated here so GUI code can override
@@ -455,8 +458,15 @@ class ExtractionJobTracker:
     def squeue_check_jobs(self, cmd, jobs_to_check):
         res = subprocess.run(cmd, stdout=subprocess.PIPE, text=True)
         if res.returncode != 0:
-            log.warning("Error calling squeue")
-            return
+            if "--clusters" in cmd:
+                fallback_cmd = [cmd[0]] + [
+                    arg for i, arg in enumerate(cmd[1:], 1)
+                    if arg != "--clusters" and cmd[i - 1] != "--clusters"
+                ]
+                res = subprocess.run(fallback_cmd, stdout=subprocess.PIPE, text=True)
+            if res.returncode != 0:
+                log.warning("Error calling squeue")
+                return
 
         self.process_squeue_output(res.stdout, jobs_to_check)
 

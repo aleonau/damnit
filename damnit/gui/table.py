@@ -1356,6 +1356,15 @@ class QtExtractionJobTracker(ExtractionJobTracker, QtCore.QObject):
         def done():
             proc.deleteLater()
             if proc.exitStatus() != QProcess.NormalExit or proc.exitCode() != 0:
+                if "--clusters" in cmd:
+                    # Retry without --clusters (e.g. for non-federated clusters like MAX IV)
+                    fallback_cmd = [cmd[0]] + [
+                        arg for i, arg in enumerate(cmd[1:], 1)
+                        if arg != "--clusters" and cmd[i - 1] != "--clusters"
+                    ]
+                    log.info("squeue with --clusters failed, retrying without --clusters: %s", fallback_cmd)
+                    self.squeue_check_jobs(fallback_cmd, jobs_to_check)
+                    return
                 log.warning("Error calling squeue")
                 return
             stdout = bytes(proc.readAllStandardOutput()).decode()
