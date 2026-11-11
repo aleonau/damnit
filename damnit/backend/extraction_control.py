@@ -75,12 +75,12 @@ def tee(path: Path):
 
 def proposal_runs(proposal):
     prop_dir = Path(find_beamtime(proposal))
-    # enumerated_list = prop_dir / "scratch_cc" / f"{proposal}_enumerated_scans.yaml"
+    enumerated_list = prop_dir / "shared" / f"{proposal}_enumerated_scans.yaml"
     
-    # with open(enumerated_list, 'r') as f:
-        # scans = yaml.safe_load(f)
+    with open(enumerated_list, 'r') as f:
+        scans = yaml.safe_load(f)
     
-    raw_runs = range(1, 10) #list(scans.keys())
+    raw_runs = list(scans.keys())
     return set(raw_runs)
 
 def batches(l, n):
@@ -352,7 +352,7 @@ def reprocess(runs, proposal=None, match=(), mock=False, watch=False, direct=Fal
         else:
             for proposal, run in rows:
                 if proposal not in available_runs:
-                    available_runs[proposal] = set(range(1, 10)) #proposal_runs(proposal)
+                    available_runs[proposal] = proposal_runs(proposal)
 
                 if run in available_runs[proposal]:
                     props_runs.append((proposal, run))

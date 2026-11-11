@@ -68,7 +68,7 @@ def fmt_run_ranges(run_nums: list[int]) -> str:
 def find_runs(runs: list[int], propnum: str) -> list[int]:
     try:
         prop_dir = Path(find_beamtime(propnum))
-        enumerated_list = prop_dir / "scratch_cc" / f"{propnum}_enumerated_scans.yaml"
+        enumerated_list = prop_dir / "shared" / f"{propnum}_enumerated_scans.yaml"
     
         with open(enumerated_list, 'r') as f:
             scans = yaml.safe_load(f)
@@ -150,7 +150,7 @@ class ProcessingDialog(QtWidgets.QDialog):
 
     def validate_runs(self):
         runs = parse_run_ranges(self.edit_runs.text())
-        self.selected_runs = runs #find_runs(runs, self.edit_prop.text())  # Desy hack: in user input we trust. No check as there's no real data.
+        self.selected_runs = find_runs(runs, self.edit_prop.text())  # Desy hack: in user input we trust. No check as there's no real data.
         if runs:
             msg = f"{len(self.selected_runs)} runs selected"
             if nmissing := len(runs) - len(self.selected_runs):

@@ -27,7 +27,7 @@ CONSUMER_ID = 'xfel-da-damnit-{}'
 KAFKA_CONF = {
     'maxwell': {
         'brokers': UPDATE_BROKERS,
-        'topics': ["test.desydamnit",],
+        'topics': ["test.max4-damnit",],
         'events': ["migration_complete", "run_corrections_complete"],
     },
     'onc': {

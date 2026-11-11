@@ -155,7 +155,7 @@ def open_scan_via_name(beamtime, scan_name, all_messages=False):
 
 def open_scan(beamtime, scan_no, all_messages=False):
 
-    enumerated_list = Path(find_beamtime(beamtime)) / "scratch_cc" / f"{beamtime}_enumerated_scans.yaml"
+    enumerated_list = Path(find_beamtime(beamtime)) / "shared" / f"{beamtime}_enumerated_scans.yaml"
     
     try:
         with open(enumerated_list, 'r') as f:
@@ -167,7 +167,11 @@ def open_scan(beamtime, scan_no, all_messages=False):
 
     scan_name = scans[scan_no]
 
-    scan_meta = open_scan_via_name(beamtime, scan_name, all_messages=all_messages)
+    # scan_meta = open_scan_via_name(beamtime, scan_name, all_messages=all_messages)
+    scan_meta = dict()
+
+    scan_meta['beamtime'] = beamtime
+    scan_meta['scan_name'] = scan_name
     scan_meta['scan_no'] = scan_no
 
     return scan_meta
