@@ -305,6 +305,9 @@ class ExtractionSubmitter:
 
     def _slurm_shared_opts(self):
         opts = []
+        if slurm_time := self.db.metameta.get('slurm_time', ''):
+            opts.extend(['--time', slurm_time])
+
         if reservation := self.db.metameta.get('slurm_reservation', ''):
             opts.extend(['--reservation', reservation])
         else:
