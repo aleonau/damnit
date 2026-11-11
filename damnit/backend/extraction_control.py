@@ -33,11 +33,6 @@ def innetgr(netgroup: bytes, host=None, user=None, domain=None):
 
 
 def default_slurm_partition():
-    username = getpass.getuser().encode()
-    if innetgr(b'exfel-wgs-users', user=username):
-        return 'exfel'
-    elif innetgr(b'upex-users', user=username):
-        return 'upex'
     return 'all'
 
 
