@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 
 from find_beamtime import find_beamtime, find_scan
+from parse_t3p import get_start_time
 
 def enumerate_scans(beamtime, save_dir=os.getcwd()):
     raw_dir = Path(find_beamtime(beamtime)) / 'raw'
@@ -173,6 +174,7 @@ def open_scan(beamtime, scan_no, all_messages=False):
     scan_meta['beamtime'] = beamtime
     scan_meta['scan_name'] = scan_name
     scan_meta['scan_no'] = scan_no
+    scan_meta['timestamp'] = get_start_time(scan_name)
 
     return scan_meta
         
