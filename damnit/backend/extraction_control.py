@@ -190,9 +190,11 @@ class ExtractionSubmitter:
                  log_path.relative_to(self.context_dir.absolute()))
 
         if req.run == -1:
-            job_name = f"{req.proposal}-damnit"
+            job_name = f"p{req.proposal}-damnit"
         else:
-            job_name = f"{req.proposal}-r{req.run}-damnit"
+            # We put the run number first so that it's visible in
+            # squeue's default 11-character column for the JobName.
+            job_name = f"r{req.run}-p{req.proposal}-damnit"
 
         return [
             'sbatch', '--parsable',
@@ -204,7 +206,7 @@ class ExtractionSubmitter:
         ]
 
     def submit_multi(self, reqs: list[ExtractionRequest], limit_running=-1):
-        """Submit multiple requests using Slurm job arrays with dynamic task renaming.
+        """Submit multiple requests using Slurm job arrays.
         """
         out = []
 
@@ -226,8 +228,6 @@ class ExtractionSubmitter:
                 log_path = process_log_path(req.run, req.proposal, self.context_dir)
                 script_file.write_text(
                     'rm "$0"\n'  # Script cleans itself up
-                    f'scontrol update JobId="$SLURM_JOB_ID" JobName="{req.proposal}-r{req.run}-damnit" 2>/dev/null || '
-                    f'scontrol update JobId="${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}" JobName="{req.proposal}-r{req.run}-damnit" 2>/dev/null || true\n'
                     f'{shlex.join(req.python_cmd())} >>"{log_path}" 2>&1'
                 )
                 script_file.chmod(0o777)
@@ -253,20 +253,14 @@ class ExtractionSubmitter:
 
     def sbatch_array_cmd(self, script_expr, reqs, limit_running=30):
         """Make the sbatch command for an array job"""
-        first_req = reqs[0]
-        last_req = reqs[-1]
-        if first_req.run == last_req.run or len(reqs) == 1:
-            job_name = f"{first_req.proposal}-r{first_req.run}-damnit"
-        else:
-            job_name = f"{first_req.proposal}-r{first_req.run}_{last_req.run}-damnit"
-
+        req = reqs[0]  # This should never be called with an empty list
         return [
             'sbatch', '--parsable',
-            *self._resource_opts(first_req.cluster),
+            *self._resource_opts(req.cluster),
             # Slurm doesn't know the run number, so we redirect inside the job
             '-o', '/dev/null',
             '--open-mode=append',
-            '--job-name', job_name,
+            '--job-name', f"p{req.proposal}-damnit",
             '--array', f"0-{len(reqs)-1}%{limit_running}",
             '--wrap', f'exec {script_expr}'
         ]
@@ -299,7 +293,7 @@ class ExtractionSubmitter:
     def srun_cmd(self, req: ExtractionRequest):
         return [
             'srun', *self._resource_opts(req.cluster),
-            '--job-name', f"{req.proposal}-r{req.run}-damnit",
+            '--job-name', f"r{req.run}-p{req.proposal}-damnit",
             *req.python_cmd()
         ]
 
