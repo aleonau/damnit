@@ -182,7 +182,7 @@ def open_scan(beamtime, scan_no, all_messages=False):
         print(e)
         timestamp = 0
     
-    scan_meta['timestamp'] = 0
+    scan_meta['timestamp'] = timestamp
 
     return scan_meta
         
