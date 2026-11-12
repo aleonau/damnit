@@ -260,7 +260,7 @@ class ExtractionSubmitter:
             # Slurm doesn't know the run number, so we redirect inside the job
             '-o', '/dev/null',
             '--open-mode=append',
-            '--job-name', f"p{req.proposal}-damnit",
+            '--job-name', f"{req.proposal}-r{req.run}-damnit",
             '--array', f"0-{len(reqs)-1}%{limit_running}",
             '--wrap', f'exec {script_expr}'
         ]
