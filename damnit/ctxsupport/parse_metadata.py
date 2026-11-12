@@ -184,6 +184,18 @@ def open_scan(beamtime, scan_no, all_messages=False):
     
     scan_meta['timestamp'] = timestamp
 
+    _folder = Path(scan_name)
+
+    t3p_files = {f.name for f in _folder.glob("*.t3p")}
+    info_files = {f.name for f in _folder.glob("*.t3p.info")}
+    if len(t3p_files) > 0 and len(t3p_files) == len(info_files):
+        _migration_finished = True
+    else:
+        print("Warning! Mismatch in .t3p and .t3p.info detected!")
+        _migration_finished = False
+
+    scan_meta['migration_finished'] = _migration_finished
+
     return scan_meta
         
     
