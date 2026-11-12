@@ -159,18 +159,17 @@ def baz(run, value: "var#foo"=42):
     return value
 ```
 
-Variable functions can use up to 4 CPU cores and 25 GB of RAM by default.
+Variable functions can use up to 2 CPU cores and 10 GB of RAM by default.
 If more resources are needed, use `cluster=True` (see the [Using
-Slurm](#using-slurm) section) to access all
-of the cores & memory of an assigned cluster node. If required, you can also
+Slurm](#using-slurm) section) to access 10 CPU cores and 25 GB of RAM. If required, you can also
 change the limits for non-cluster variables:
 
 ```bash
-# Allow 8 CPU cores
-$ damnit db-config noncluster_cpus 8
+# Allow 4 CPU cores
+$ damnit db-config noncluster_cpus 4
 
-# Allow 50 GB memory
-$ damnit db-config noncluster_mem 50G
+# Allow 20 GB memory
+$ damnit db-config noncluster_mem 20G
 ```
 
 ### Cell
@@ -216,12 +215,16 @@ def foo(run):
     return 42
 ```
 
-This should work out-of-the-box with no other configuration needed. The default
+This should work out-of-the-box with no other configuration needed. Cluster variables default to 10 CPU cores and 25 GB of RAM (customizable via `cluster_cpus` and `cluster_mem`). The default
 timeout for Slurm jobs is 2 hours, which can be customized through the
 `slurm_time` setting:
 ```bash
 # Set a time limit of 5 hours
 $ damnit db-config slurm_time 05:00:00
+
+# Customize cluster CPU and memory limits
+$ damnit db-config cluster_cpus 16
+$ damnit db-config cluster_mem 50G
 ```
 
 By default DAMNIT will figure out an appropriate partition that user has access

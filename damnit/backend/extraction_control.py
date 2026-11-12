@@ -304,29 +304,22 @@ class ExtractionSubmitter:
             return self._slurm_shared_opts()
 
     def _slurm_shared_opts(self):
-        # opts = []
-        # if slurm_time := self.db.metameta.get('slurm_time', ''):
-        #     opts.extend(['--time', slurm_time])
+        opts = []
+        if cluster := self.db.metameta.get('slurm_cluster', ''):
+            opts.extend(["--clusters", cluster])
 
-        # if reservation := self.db.metameta.get('slurm_reservation', ''):
-        #     opts.extend(['--reservation', reservation])
-        # else:
-        #     partition = self.db.metameta.get('slurm_partition', '') or default_slurm_partition()
-        #     opts.extend(['--partition', partition])
+        if reservation := self.db.metameta.get('slurm_reservation', ''):
+            opts.extend(['--reservation', reservation])
+        else:
+            partition = self.db.metameta.get('slurm_partition', '') or default_slurm_partition()
+            opts.extend(['--partition', partition])
 
-        # opts.extend([
-        #     # Default 4 CPU cores & 25 GB memory, can be overridden
-        #     '--cpus-per-task', str(self.db.metameta.get('noncluster_cpus', '4')),
-        #     '--mem', self.db.metameta.get('noncluster_mem', '25G'),
-        # ])
-        # return opts
-
-        return [
-            "--clusters", "all",
-            # Default 4 CPU cores & 25 GB memory, can be overridden
-            '--cpus-per-task', str(self.db.metameta.get('noncluster_cpus', '4')),
-            '--mem', self.db.metameta.get('noncluster_mem', '25G'),
-        ]
+        opts.extend([
+            # Default 2 CPU cores & 10 GB memory, can be overridden
+            '--cpus-per-task', str(self.db.metameta.get('noncluster_cpus', '2')),
+            '--mem', self.db.metameta.get('noncluster_mem', '10G'),
+        ])
+        return opts
 
     def _slurm_cluster_opts(self):
         opts = [
@@ -341,6 +334,11 @@ class ExtractionSubmitter:
             partition = self.db.metameta.get('slurm_partition', '') or default_slurm_partition()
             opts.extend(['--partition', partition])
 
+        opts.extend([
+            # Default 10 CPU cores & 25 GB memory, can be overridden
+            '--cpus-per-task', str(self.db.metameta.get('cluster_cpus', '10')),
+            '--mem', self.db.metameta.get('cluster_mem', '25G'),
+        ])
         return opts
 
 
