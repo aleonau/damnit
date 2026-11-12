@@ -322,7 +322,7 @@ class ExtractionSubmitter:
         # return opts
 
         return [
-            "--clusters", "solaris",
+            "--clusters", "all",
             # Default 4 CPU cores & 25 GB memory, can be overridden
             '--cpus-per-task', str(self.db.metameta.get('noncluster_cpus', '4')),
             '--mem', self.db.metameta.get('noncluster_mem', '25G'),
