@@ -204,20 +204,69 @@ class ExtractionSubmitter:
         ]
 
     def submit_multi(self, reqs: list[ExtractionRequest], limit_running=-1):
-        """Submit multiple requests as independent Slurm jobs.
+        """Submit multiple requests using Slurm job arrays with dynamic task renaming.
         """
-        return [self.submit(req) for req in reqs]
+        out = []
+
+        if limit_running == -1:
+            limit_running = self.db.metameta.setdefault("concurrent_jobs", 15)
+
+        assert len({r.cluster for r in reqs}) <= 1  # Don't mix cluster/non-cluster
+
+        # Array jobs are limited to 1001 in Slurm config (MaxArraySize)
+        for req_group in batches(reqs, 1000):
+            grpid = token_hex(8)   # random unique string
+            scripts_dir = self.context_dir / '.tmp'
+            scripts_dir.mkdir(exist_ok=True)
+            if scripts_dir.stat().st_uid == os.getuid():
+                scripts_dir.chmod(0o777)
+
+            for i, req in enumerate(req_group):
+                script_file = scripts_dir / f'launch-{grpid}-{i}.sh'
+                log_path = process_log_path(req.run, req.proposal, self.context_dir)
+                script_file.write_text(
+                    'rm "$0"\n'  # Script cleans itself up
+                    f'scontrol update JobId="$SLURM_JOB_ID" JobName="{req.proposal}-r{req.run}-damnit" 2>/dev/null || '
+                    f'scontrol update JobId="${{SLURM_ARRAY_JOB_ID}}_${{SLURM_ARRAY_TASK_ID}}" JobName="{req.proposal}-r{req.run}-damnit" 2>/dev/null || true\n'
+                    f'{shlex.join(req.python_cmd())} >>"{log_path}" 2>&1'
+                )
+                script_file.chmod(0o777)
+
+            script_expr = f".tmp/launch-{grpid}-$SLURM_ARRAY_TASK_ID.sh"
+            cmd = self.sbatch_array_cmd(script_expr, req_group, limit_running)
+            if out:
+                # 1 batch at a time, to simplify limiting concurrent jobs
+                prev_job = out[-1][0]
+                cmd.append(f"--dependency=afterany:{prev_job}")
+            res = subprocess.run(
+                cmd, stdout=subprocess.PIPE, text=True, check=True,
+                cwd=self.context_dir, env=self._filter_env(),
+            )
+            job_id, _, cluster = res.stdout.partition(';')
+            job_id = job_id.strip()
+            cluster = cluster.strip() or None
+            log.info("Launched Slurm (%s) job array %s (%d runs) to run context file",
+                     cluster or "default", job_id, len(req_group))
+            out.extend([(f"{job_id}_{i}", cluster) for i in range(len(req_group))])
+
+        return out
 
     def sbatch_array_cmd(self, script_expr, reqs, limit_running=30):
         """Make the sbatch command for an array job"""
-        req = reqs[0]  # This should never be called with an empty list
+        first_req = reqs[0]
+        last_req = reqs[-1]
+        if first_req.run == last_req.run or len(reqs) == 1:
+            job_name = f"{first_req.proposal}-r{first_req.run}-damnit"
+        else:
+            job_name = f"{first_req.proposal}-r{first_req.run}_{last_req.run}-damnit"
+
         return [
             'sbatch', '--parsable',
-            *self._resource_opts(req.cluster),
+            *self._resource_opts(first_req.cluster),
             # Slurm doesn't know the run number, so we redirect inside the job
             '-o', '/dev/null',
             '--open-mode=append',
-            '--job-name', f"{req.proposal}-r{req.run}-damnit",
+            '--job-name', job_name,
             '--array', f"0-{len(reqs)-1}%{limit_running}",
             '--wrap', f'exec {script_expr}'
         ]
