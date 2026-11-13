@@ -22,8 +22,15 @@ from pathlib import Path
 from unittest.mock import MagicMock
 from contextlib import contextmanager
 
-import extra_data
-import extra_proposal
+try:
+    import extra_data
+except ImportError:
+    extra_data = None
+
+try:
+    import extra_proposal
+except ImportError:
+    extra_proposal = None
 import h5py
 import numpy as np
 import xarray as xr
@@ -260,6 +267,8 @@ class ContextFile:
 
                     # Mymdc fields
                     elif annotation.startswith("mymdc#"):
+                        if extra_proposal is None:
+                            raise RuntimeError("extra_proposal is not installed in the context Python environment")
                         if metadata is None:
                             metadata = extra_proposal.Proposal(proposal)[run_number]
                         field = annotation.removeprefix('mymdc#')
@@ -753,13 +762,14 @@ def main(argv=None):
             proc_available = True
         else:
             # Otherwise check with open_run()
-            try:
-                extra_data.open_run(args.proposal, args.run, data="proc")
-                proc_available = True
-            except FileNotFoundError:
-                pass
-            except Exception as e:
-                log.warning(f"Error when checking if proc data available: {e}")
+            if extra_data is not None:
+                try:
+                    extra_data.open_run(args.proposal, args.run, data="proc")
+                    proc_available = True
+                except FileNotFoundError:
+                    pass
+                except Exception as e:
+                    log.warning(f"Error when checking if proc data available: {e}")
 
         run_data = RunData(args.run_data)
         if run_data == RunData.ALL and not proc_available:
