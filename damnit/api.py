@@ -419,7 +419,7 @@ class Damnit:
                 a path to a database directory.
         """
         if isinstance(location, int):
-            proposal_path = find_beamtime(location)
+            proposal_path = Path(find_beamtime(location))
             self._db_dir = proposal_path / "shared/_damnit"
         elif isinstance(location, (Path, str)):
             self._db_dir = Path(location)
