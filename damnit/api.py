@@ -24,12 +24,12 @@ class DataType(Enum):
 
 # Also copied, this time from extra_data.read_machinery
 def find_proposal(propno):
-    root_dir = os.environ.get('XFEL_DATA_ROOT', '/gpfs/exfel/exp')
-    dir_name = f"p{propno:06}"
-    for d in iglob(osp.join(root_dir, '*/*/{}'.format(dir_name))):
-        return Path(d)
-
-    raise FileNotFoundError("Couldn't find proposal dir for {!r}".format(propno))
+    try:
+        proposal_dir = find_beamtime(propno)
+        return Path(proposal_dir)
+    except Exception as e:
+        print(f"Error: {e}")
+        raise FileNotFoundError("Couldn't find proposal dir for {!r}".format(propno))
 
 
 class VariableData:
