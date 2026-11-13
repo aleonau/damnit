@@ -10,6 +10,7 @@ import numpy as np
 
 from .backend.db import BlobTypes, DamnitDB, blob2complex
 from .util import isinstance_no_import
+from .ctxsupport.find_beamtime import find_beamtime
 
 
 # This is a copy of damnit.ctxsupport.ctxrunner.DataType, purely so that we can
@@ -418,8 +419,8 @@ class Damnit:
                 a path to a database directory.
         """
         if isinstance(location, int):
-            proposal_path = find_proposal(location)
-            self._db_dir = proposal_path / "usr/Shared/amore"
+            proposal_path = find_beamtime(location)
+            self._db_dir = proposal_path / "shared/_damnit"
         elif isinstance(location, (Path, str)):
             self._db_dir = Path(location)
         else:
